@@ -5,7 +5,6 @@ create table
     updated_at timestamp with time zone not null default timezone ('utc'::text, now()),
     request_id uuid null,
     url text null,
-    features json null,
     data json null,
     constraint table_name_pkey primary key (id)
   ) tablespace pg_default;

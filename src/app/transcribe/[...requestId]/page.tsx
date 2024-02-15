@@ -109,7 +109,7 @@ const Transcript = ({ params }: Props) => {
     const getTranscription = async () => {
       const { data: result, error } = await supabase
         .from("transcriptions")
-        .select("url, data, features")
+        .select("url, data")
         .eq("request_id", requestId)
         .limit(1)
         .single();
