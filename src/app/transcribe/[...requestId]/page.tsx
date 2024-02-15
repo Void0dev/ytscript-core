@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ArrowLongLeftIcon,
   ShareIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
@@ -84,16 +83,7 @@ const Next = () => {
 };
 
 const Prev = () => {
-  return (
-    <PaginationButton
-      href="/features"
-      validator={() => true}
-      style="dg-button--secondary"
-    >
-      <ArrowLongLeftIcon className="mr-3 h-6" aria-hidden="true" />
-      Change features
-    </PaginationButton>
-  );
+  return (<></>);
 };
 
 type Props = {
@@ -103,7 +93,7 @@ type Props = {
 const Transcript = ({ params }: Props) => {
   const { requestId } = params;
   const { setError } = useErrorContext();
-  const { features, url, setRequestId, setFeatures, setUrl } =
+  const { url, setRequestId, setUrl } =
     useTranscriptionContext();
   const [data, setData] = useState<any>({});
   const [isLoading, setLoading] = useState(false);
@@ -111,9 +101,6 @@ const Transcript = ({ params }: Props) => {
   const [output, setOutput] = useState(
     <TranscriptionLoader isLoading={isLoading} message="Preparing..." />
   );
-
-  const [tab, setTab] = useState<any>();
-  const speaker = useRef();
 
   useEffect(() => {
     setLoading(true);
@@ -131,7 +118,6 @@ const Transcript = ({ params }: Props) => {
 
       setData(result?.data);
       setUrl(result?.url);
-      setFeatures(result?.features);
       setLoading(false);
     };
 
@@ -148,7 +134,7 @@ const Transcript = ({ params }: Props) => {
         }
       }
     }
-  }, [features, url]);
+  }, [url]);
 
   useEffect(() => {
     if (isLoading) {
@@ -160,7 +146,7 @@ const Transcript = ({ params }: Props) => {
 
   useEffect(() => {
     if (!isLoading && data) {
-      setOutput(<TranscriptionResults data={data} tab={tab} setTab={setTab} />);
+      setOutput(<TranscriptionResults data={data} />);
     }
   }, [isLoading, data]);
 

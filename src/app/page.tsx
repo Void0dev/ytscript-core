@@ -16,12 +16,11 @@ const Next = () => {
 
   return (
     <PaginationButton
-      href="/features"
-      validator={() => !!url}
-      error="Please enter a YouTube link, or use a sample link."
+      href="/transcribe"
+      error="Please enter a YouTube link."
     >
-      Select features
-      <ArrowLongRightIcon className="ml-3 h-6" aria-hidden="true" />
+        Get results
+        <ArrowLongRightIcon className="ml-3 h-6" aria-hidden="true" />
     </PaginationButton>
   );
 };
@@ -51,21 +50,8 @@ const Home = () => {
           />
         </div>
       </div>
-      <div className="text-xs">
-        Don&apos;t have a YouTube video to hand?{" "}
-        <Link
-          className="focus:outline-none focus:ring-0 text-[#81f4b4] hover:underline"
-          href="/transcribe/c865cebb-6987-405d-8119-bb9e255d0142"
-        >
-          View sample result
-          <ChevronRightIcon className="ml-1 w-[1em] inline border-0 focus:outline-none focus:ring-0 stroke-2" />
-        </Link>
-      </div>
       <PaginationBar next={Next} />
-      <p className="w-1/3 mt-0 self-end text-right text-gray-400">
-        By using this app, you permit the storage of the transcription result
-        temporarily.
-      </p>
+
     </div>
   );
 };

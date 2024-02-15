@@ -1,11 +1,8 @@
-import CodeBlock from "@/components/CodeBlock";
 import CopyButton from "@/components/CopyButton";
-import { Feature } from "@/context/transcription";
 import classNames from "@/util/classNames";
 import isEmpty from "@/util/isEmpty";
 import { Switch, Tab } from "@headlessui/react";
-import querystring from "querystring";
-import { Fragment, useRef, useState } from "react";
+import { Fragment,  useState } from "react";
 
 const colorMap = [
   "text-blue-400",
@@ -211,159 +208,15 @@ const Words = ({ data }: { data: any }) => {
 
 const TranscriptionTypes = ({
   data,
-  features,
 }: {
   data: any;
-  features: any;
 }) => {
   return (
-    <>
-      <div className="flex gap-2 mb-4">
-        {features.smart_format ? <code>smart_format=true</code> : <></>}
-        {features.paragraphs ? <code>paragraphs=true</code> : <></>}
-        {features.utterances ? <code>utterances=true</code> : <></>}
-        {features.diarize ? <code>diarize=true</code> : <></>}
-      </div>
-      {features.paragraphs && features.utterances && (
-        <UtterancesParagraphsSwitching data={data} />
-      )}
-      {features.paragraphs && !features.utterances && (
-        <Paragraphs data={data} />
-      )}
-      {!features.paragraphs && features.utterances && (
-        <Utterances data={data} />
-      )}
-      {!features.paragraphs && !features.utterances && (
-        <>
-          {features.diarize ? (
-            <Words data={data} />
-          ) : (
-            <Transcript data={data} />
-          )}
-        </>
-      )}
-    </>
+     <Words data={data} />
   );
 };
 
-const Summarize = ({ data }: { data: any }) => {
-  return (
-    <>
-      <div className="flex gap-2">
-        <code>summarize=v2</code>
-      </div>
-      {data.results.summary ? (
-        <p>{data.results.summary.short}</p>
-      ) : (
-        <p>No summary available.</p>
-      )}
-    </>
-  );
-};
 
-const DetectTopics = ({ data }: { data: any }) => {
-  let topics: { confidence: number; topic: string }[] = [];
-
-  data.results.channels[0].alternatives[0].topics.forEach(
-    (segment: { topics: [] }) => {
-      segment.topics.forEach((topic) => {
-        topics.push(topic);
-      });
-    }
-  );
-
-  return (
-    <>
-      <div className="flex gap-2">
-        <code>detect_topics=true</code>
-      </div>
-      <ul>
-        {topics.length > 0 &&
-          topics.map((topic, index: number) => (
-            <li key={`topic-${index}`}>
-              {topic.topic} ({Math.round(topic.confidence * 100)}%)
-            </li>
-          ))}
-      </ul>
-    </>
-  );
-};
-
-const DetectEntities = ({ data }: { data: any }) => {
-  return (
-    <>
-      <div className="flex gap-2">
-        <code>detect_entities=true</code>
-      </div>
-      <ul>
-        {data.results.channels[0].alternatives[0].entities.length > 0 &&
-          data.results.channels[0].alternatives[0].entities.map(
-            (entity: any, index: number) => (
-              <li key={`entity-${index}`}>
-                {entity.value} ({Math.round(entity.confidence * 100)}% - label:{" "}
-                {entity.label})
-              </li>
-            )
-          )}
-      </ul>
-    </>
-  );
-};
-
-const DetectLanguage = ({ data }: { data: any }) => {
-  return (
-    <>
-      <div className="flex gap-2">
-        <code>detect_language=true</code>
-      </div>
-      <p>Detected language: {data.results.channels[0].detected_language}</p>
-    </>
-  );
-};
-
-const RequestDetails = ({ data }: { data: any }) => {
-  const features: { [key: string]: boolean | string } = {};
-  data.features
-    .filter((feature: Feature) => feature.value !== false)
-    .forEach((feature: Feature) => {
-      features[feature.key] =
-        feature.value === true ? feature.truthy ?? feature.value : false;
-    });
-
-  const curl = `curl --request POST \\
-     --url https://api.deepgram.com/v1/listen?${querystring.stringify(
-       features
-     )}  \\
-     --header 'Authorization: Token DEEPGRAM_API_KEY'  \\
-     --data-binary @~/your-video.mp4`;
-
-  return (
-    <>
-      <h4>Request</h4>
-      <div>
-        <CodeBlock language="bash">{curl}</CodeBlock>
-        <CopyButton code={curl} />
-      </div>
-      <h4>Raw Response</h4>
-      <div>
-        <CodeBlock language="json">
-          {JSON.stringify(
-            { metadata: data.metadata, results: data.results },
-            null,
-            "  "
-          )}
-        </CodeBlock>
-        <CopyButton
-          code={JSON.stringify(
-            { metadata: data.metadata, results: data.results },
-            null,
-            "  "
-          )}
-        />
-      </div>
-    </>
-  );
-};
 
 const FeatureTab = ({ children }: { children: any }) => {
   return (
@@ -383,78 +236,17 @@ const FeatureTab = ({ children }: { children: any }) => {
   );
 };
 
-const FeaturePanel = ({ children }: { children: any }) => {
-  return <Tab.Panel>{children}</Tab.Panel>;
-};
-
 const TranscriptionResults = ({
   data,
-  tab,
-  setTab,
 }: {
   data: any;
-  tab: any;
-  setTab: any;
 }) => {
   if (isEmpty(data)) return <></>;
 
-  const features: { [key: string]: boolean | string } = {};
-  data.features
-    .filter((feature: Feature) => feature.value !== false)
-    .forEach((feature: Feature) => {
-      features[feature.key] = feature.value;
-    });
 
   return (
     <div className="mt-8 bg-[#101014] rounded-lg transcription-results">
-      <div>
-        <Tab.Group selectedIndex={tab} onChange={setTab}>
-          <Tab.List className="p-4">
-            <div className="flex flex-wrap gap-2">
-              <FeatureTab>Transcription</FeatureTab>
-              {features.summarize && <FeatureTab>Summary</FeatureTab>}
-              {features.detect_topics && (
-                <FeatureTab>Topic Detection</FeatureTab>
-              )}
-              {features.detect_entities && (
-                <FeatureTab>Entity Detection</FeatureTab>
-              )}
-              {features.detect_language && (
-                <FeatureTab>Language Detection</FeatureTab>
-              )}
-              <FeatureTab>Request Details</FeatureTab>
-            </div>
-          </Tab.List>
-          <Tab.Panels className="border-t border-[#26262c] px-4">
-            <FeaturePanel>
-              <TranscriptionTypes data={data} features={features} />
-            </FeaturePanel>
-            {features.summarize && (
-              <FeaturePanel>
-                <Summarize data={data} />
-              </FeaturePanel>
-            )}
-            {features.detect_topics && (
-              <FeaturePanel>
-                <DetectTopics data={data} />
-              </FeaturePanel>
-            )}
-            {features.detect_entities && (
-              <FeaturePanel>
-                <DetectEntities data={data} />
-              </FeaturePanel>
-            )}
-            {features.detect_language && (
-              <FeaturePanel>
-                <DetectLanguage data={data} />
-              </FeaturePanel>
-            )}
-            <FeaturePanel>
-              <RequestDetails data={data} />
-            </FeaturePanel>
-          </Tab.Panels>
-        </Tab.Group>
-      </div>
+      <TranscriptionTypes data={data}/>
     </div>
   );
 };

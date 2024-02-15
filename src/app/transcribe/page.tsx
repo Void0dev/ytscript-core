@@ -15,19 +15,19 @@ import YouTubePreview from "@/components/transcription/YouTubePreview";
 const Prev = () => {
   return (
     <PaginationButton
-      href="/features"
+      href="/"
       validator={() => true}
       style="dg-button--secondary"
     >
       <ArrowLongLeftIcon className="mr-3 h-6" aria-hidden="true" />
-      Change features
+      Start over
     </PaginationButton>
   );
 };
 
 const Transcribe = () => {
   const { setError } = useErrorContext();
-  const { features, url, requestId, setRequestId } = useTranscriptionContext();
+  const {  url, requestId, setRequestId } = useTranscriptionContext();
   const [isLoading, setLoading] = useState(false);
   const [videoId, setVideoId] = useState("");
   const [output, setOutput] = useState(
@@ -53,7 +53,6 @@ const Transcribe = () => {
       method: "POST",
       body: JSON.stringify({
         source: { url },
-        features,
       }),
     })
       .then((res) => res.json())
@@ -68,7 +67,7 @@ const Transcribe = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, [features, url]);
+  }, [url]);
 
   useEffect(() => {
     if (isLoading) {

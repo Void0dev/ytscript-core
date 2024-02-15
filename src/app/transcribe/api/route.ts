@@ -1,12 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { Deepgram } from "@deepgram/sdk";
-import { Features } from "@/context/transcription";
 import { NextResponse } from "next/server";
 import { ReadStreamSource } from "@deepgram/sdk/dist/types";
 import fs from "fs";
 import urlParser from "@/util/urlParser";
 import ytdl from "ytdl-core";
-import featureMap from "@/util/featureMap";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
@@ -14,16 +12,14 @@ const supabase = createClient(
 );
 
 const dg = new Deepgram(
-  process.env.DEEPGRAM_API_KEY as string,
-  "api.beta.deepgram.com"
+  process.env.DEEPGRAM_API_KEY as string
 );
 
 export async function POST(request: Request) {
   const body: {
     source: { url: string };
-    features: Features;
   } = await request.json();
-  const { source, features } = body;
+  const { source} = body;
 
   const videoId = urlParser(source.url);
   const mp3FilePath = `/tmp/ytdl-${videoId}.mp3`;
@@ -41,13 +37,13 @@ export async function POST(request: Request) {
         mimetype: "audio/mp3",
       };
 
-      const map = featureMap(features.filter((f) => f.value !== false));
-      map.push({ model: "nova" });
-      map.push({ llm: 1 });
-      map.push({ tag: "deeptube-demo" });
-      map.push({ utt_split: 1.2 });
-
-      const dgFeatures = Object.assign({}, ...map);
+      const dgFeatures = {
+        utterances: true,
+        smart_format: true,
+        detect_language: true,
+        diarize: true,
+        utt_split: 1.2,
+      }
 
       try {
         const transcript: {
@@ -60,20 +56,20 @@ export async function POST(request: Request) {
 
         const data = {
           source,
-          features,
           ...transcript,
         };
 
-        const { error } = await supabase.from("transcriptions").insert({
+        const result = {
           url: source.url,
           request_id: transcript.metadata.request_id,
           data,
-          features,
-        });
+        }
+
+        const { error } = await supabase.from("transcriptions").insert(result);
 
         if (error) throw new Error(error.message);
 
-        resolve({ request_id: transcript.metadata.request_id });
+        resolve(result);
       } catch (error) {
         if (error instanceof Error) {
           reject(error.message);
